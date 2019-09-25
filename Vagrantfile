@@ -12,9 +12,11 @@ Vagrant.configure("2") do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
-  config.vm.box = "base"
+  config.vm.box = "geerlingguy/centos7"
 
-  config.ssh.inser_key = false
+  config.ssh.insert_key = false
+
+  config.vm.network "private_network", ip: "192.168.33.15"
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
   # `vagrant box outdated`. This is not recommended.
@@ -52,8 +54,8 @@ Vagrant.configure("2") do |config|
   #
   config.vm.provider "virtualbox" do |vb|
     # Display the VirtualBox GUI when booting the machine
-    vb.gui = true
-    vb.name = "rabbit_mq"
+    vb.gui = false
+    vb.name = "rabbitmq"
 
     # Customize the amount of memory on the VM:
     vb.memory = "1024"
@@ -65,9 +67,20 @@ Vagrant.configure("2") do |config|
   # Enable provisioning with a shell script. Additional provisioners such as
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
-  config.vm.provision "rabbit", inline: <<-SHELL
+  config.vm.provision "shell", inline: <<-SHELL
     sudo yum update -y
+
+    sudo yum install epel-release -y
+    wget https://packages.erlang-solutions.com/erlang-solutions-1.0-1.noarch.rpm
+    sudo rpm -Uvh erlang-solutions-1.0-1.noarch.rpm
+
+    sudo yum install socat erlang esl-erlang -y
+    sudo yum install socat -y
+    sudo yum install erlang -y
     wget https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.7.18/rabbitmq-server-3.7.18-1.el7.noarch.rpm
     sudo rpm -ivh rabbitmq-server-3.7.18-1.el7.noarch.rpm
+
+    sudo systemctl start rabbitmq-server
+    sydo systemctl enable rabbitmq-server
   SHELL
 end
